@@ -121,6 +121,7 @@ public final class Version {
         }
     }
 
+    // todo: 获取版本号(Dubbo 实现版本，通常是jar版本。)
     public static String getVersion(Class<?> cls, String defaultVersion) {
         try {
             // find version info from MANIFEST.MF first
@@ -157,7 +158,7 @@ public final class Version {
                     }
                 }
             }
-            // return default version if no version info is found
+            // return default version if no version info is found（返回版本号。若不存在，返回默认版本号。）
             return version == null || version.length() == 0 ? defaultVersion : version;
         } catch (Throwable e) {
             // return default version when any exception is thrown

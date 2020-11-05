@@ -21,6 +21,17 @@ package com.alibaba.dubbo.rpc.service;
  *
  * @export
  */
+
+/**
+ *     泛化调用：
+ *     泛化接口调用方式主要用于客户端没有 API 接口及模型类元的情况，参数及返回值中的所有 POJO 均用 Map 表示，
+ *     通常用于框架集成，比如：实现一个通用的服务测试框架，可通过 GenericService 调用所有服务实现。
+ *
+ *     参考文档：
+ *     http://dubbo.apache.org/zh-cn/docs/2.7/user/demos/generic-reference/
+ *
+ */
+
 public interface GenericService {
 
     /**

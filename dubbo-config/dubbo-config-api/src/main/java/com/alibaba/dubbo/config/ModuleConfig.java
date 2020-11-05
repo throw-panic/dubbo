@@ -26,6 +26,11 @@ import java.util.List;
  *
  * @export
  */
+
+/**
+ *  todo:   模块信息配置
+ *          用于注册中心计算模块间依赖关系
+ */
 public class ModuleConfig extends AbstractConfig {
 
     private static final long serialVersionUID = 5508512956753757169L;
