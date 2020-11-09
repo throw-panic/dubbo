@@ -56,7 +56,20 @@ public class DubboConfigConfiguration {
      * Single Dubbo {@link AbstractConfig Config} Bean Binding
      * 单个对象绑定
      */
+
+    /**
+     *  @EnableConfigurationBeanBindings 使用 注解
+     *  @Import({ConfigurationBeanBindingsRegister.class})
+     *  表明使用 DubboConfigBindingsRegistrar 类进行导入。
+     *
+     *  DubboConfigBindingRegistrar： 将对象注册到 spring 容器中;
+     */
     @EnableConfigurationBeanBindings({
+            /**
+             * @EnableConfigurationBeanBinding 类 使用了
+             * @Import(DubboConfigBindingRegistrar.class) 注解，
+             * 表明使用 DubboConfigBindingRegistrar 类 进行导入。
+             */
             @EnableConfigurationBeanBinding(prefix = "dubbo.application", type = ApplicationConfig.class),
             @EnableConfigurationBeanBinding(prefix = "dubbo.module", type = ModuleConfig.class),
             @EnableConfigurationBeanBinding(prefix = "dubbo.registry", type = RegistryConfig.class),
@@ -75,6 +88,7 @@ public class DubboConfigConfiguration {
 
     /**
      * Multiple Dubbo {@link AbstractConfig Config} Bean Binding
+     * 绑定多个对象
      */
     @EnableConfigurationBeanBindings({
             @EnableConfigurationBeanBinding(prefix = "dubbo.applications", type = ApplicationConfig.class, multiple = true),
