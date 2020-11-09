@@ -54,6 +54,7 @@ public class DubboConfigConfiguration {
 
     /**
      * Single Dubbo {@link AbstractConfig Config} Bean Binding
+     * 单个对象绑定
      */
     @EnableConfigurationBeanBindings({
             @EnableConfigurationBeanBinding(prefix = "dubbo.application", type = ApplicationConfig.class),

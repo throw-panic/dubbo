@@ -23,6 +23,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
 
+
+/**
+ *  todo:
+ *      dubbo 注解配置
+ *
+ */
+
 @Component("demoServiceComponent")
 public class DemoServiceComponent implements DemoService {
     @Reference

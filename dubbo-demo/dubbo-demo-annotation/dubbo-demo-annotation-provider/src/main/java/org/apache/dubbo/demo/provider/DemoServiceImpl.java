@@ -25,6 +25,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ *  todo:
+ *      dubbo 注解配置
+ *
+ */
+
 @Service
 public class DemoServiceImpl implements DemoService {
     private static final Logger logger = LoggerFactory.getLogger(DemoServiceImpl.class);

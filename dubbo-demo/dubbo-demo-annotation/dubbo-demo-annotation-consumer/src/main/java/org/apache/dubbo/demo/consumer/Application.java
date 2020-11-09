@@ -25,6 +25,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
+/**
+ *  todo:
+ *      dubbo 注解配置
+ *
+ */
+
 public class Application {
     /**
      * In order to make sure multicast registry works, need to specify '-Djava.net.preferIPv4Stack=true' before
@@ -32,6 +38,7 @@ public class Application {
      */
     public static void main(String[] args) {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ConsumerConfiguration.class);
+        // 启动 spring 上下文
         context.start();
         DemoService service = context.getBean("demoServiceComponent", DemoServiceComponent.class);
         String hello = service.sayHello("world");
@@ -39,7 +46,12 @@ public class Application {
     }
 
     @Configuration
+
+    // 使用 @EnableDubbo 注解，配置扫描 "org.apache.dubbo.demo.consumer.comp"
+    // 目录下的 @Service 和 @Reference Bean 对象。
     @EnableDubbo(scanBasePackages = "org.apache.dubbo.demo.consumer.comp")
+
+    // 使用 @PropertySource 注解，导入 "classpath:/spring/dubbo-consumer.properties" 配置文件。
     @PropertySource("classpath:/spring/dubbo-consumer.properties")
     @ComponentScan(value = {"org.apache.dubbo.demo.consumer.comp"})
     static class ConsumerConfiguration {
