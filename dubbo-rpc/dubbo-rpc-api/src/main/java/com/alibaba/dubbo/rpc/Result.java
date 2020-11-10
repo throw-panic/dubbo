@@ -25,6 +25,12 @@ import java.util.Map;
  * @see com.alibaba.dubbo.rpc.Invoker#invoke(Invocation)
  * @see com.alibaba.dubbo.rpc.RpcResult
  */
+
+/**
+ * TODO:
+ *      Result 是会话域，它持有调用过程中返回值，异常等。
+ *
+ */
 public interface Result {
 
     /**
@@ -49,6 +55,7 @@ public interface Result {
     boolean hasException();
 
     /**
+     * todo: recreate 实现代码如下：
      * Recreate.
      * <p>
      * <code>

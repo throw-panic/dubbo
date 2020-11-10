@@ -25,9 +25,16 @@ import java.util.Map;
  * @see com.alibaba.dubbo.rpc.Invoker#invoke(Invocation)
  * @see com.alibaba.dubbo.rpc.RpcInvocation
  */
+
+
+/**
+ *  TODO:
+ *      Invocation 是会话域，它持有调用过程中的变量，比如方法名，参数等。
+ */
 public interface Invocation {
 
     /**
+     * #getMethodName() 方法，获得方法名。
      * get method name.
      *
      * @return method name.
@@ -36,6 +43,7 @@ public interface Invocation {
     String getMethodName();
 
     /**
+     * #getParameterTypes() 方法，获得方法参数类型数组。
      * get parameter types.
      *
      * @return parameter types.
@@ -44,6 +52,7 @@ public interface Invocation {
     Class<?>[] getParameterTypes();
 
     /**
+     * #getArguments() 方法，获得方法参数数组。
      * get arguments.
      *
      * @return arguments.
@@ -52,6 +61,7 @@ public interface Invocation {
     Object[] getArguments();
 
     /**
+     * #getAttachments() 等方法，获得隐式参数相关。
      * get attachments.
      *
      * @return attachments.
@@ -76,6 +86,7 @@ public interface Invocation {
     String getAttachment(String key, String defaultValue);
 
     /**
+     * #getInvoker() 方法，获得对应的 Invoker 对象。
      * get the invoker in current context.
      *
      * @return invoker.

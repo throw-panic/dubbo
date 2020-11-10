@@ -25,14 +25,16 @@ import com.alibaba.dubbo.common.extension.SPI;
 public interface Filter {
 
     /**
-     * do invoke filter.
-     * <p>
-     * <code>
-     * // before filter
-     * Result result = invoker.invoke(invocation);
-     * // after filter
-     * return result;
-     * </code>
+     *
+     *      do invoke filter.
+     *      <p>
+     *      <code>
+     *      // todo: before FILTER（自己实现的 filter）   ---> invoke 方法调用前后 进行 filter
+     *      Result result = invoker.invoke(invocation);
+     *      // todo: after FILTER
+     *      return result;
+     *      </code>
+     *
      *
      * @param invoker    service
      * @param invocation invocation.
