@@ -26,6 +26,8 @@ import java.util.List;
 
 /**
  * AdaptiveExtensionFactory
+ *
+ * ExtensionFactory 拓展对象集合
  */
 @Adaptive
 public class AdaptiveExtensionFactory implements ExtensionFactory {
@@ -33,8 +35,10 @@ public class AdaptiveExtensionFactory implements ExtensionFactory {
     private final List<ExtensionFactory> factories;
 
     public AdaptiveExtensionFactory() {
+        // 使用 ExtensionLoader 加载拓展对象实现类。
         ExtensionLoader<ExtensionFactory> loader = ExtensionLoader.getExtensionLoader(ExtensionFactory.class);
         List<ExtensionFactory> list = new ArrayList<ExtensionFactory>();
+        // 遍历工厂数组，直到获得到属性
         for (String name : loader.getSupportedExtensions()) {
             list.add(loader.getExtension(name));
         }
