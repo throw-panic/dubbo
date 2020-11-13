@@ -27,6 +27,19 @@ import java.util.concurrent.TimeUnit;
  * or the currentPoolThreadSize more than executor's maximumPoolSize.
  * That can make the executor create new worker
  * when the task num is bigger than corePoolSize but less than maximumPoolSize.
+ *
+ * todo:
+ *      如果执行器的submittedTaskCount 小于currentPoolThreadSize 或
+ *      currentPoolThreadSize 大于 executor的maximumPoolSize，
+ *      则提供一个任务。当 task num大于corePoolSize 但小于maximumPoolSize 时，
+ *      这会使执行器创建新的worker。
+ */
+
+/**
+ * todo:
+ *      任务队列
+ *
+ * @param <R>
  */
 public class TaskQueue<R extends Runnable> extends LinkedBlockingQueue<Runnable> {
 

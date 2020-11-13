@@ -86,7 +86,7 @@ public @interface Adaptive {
     /**
      * todo:
      *      @Adaptive 注解，可添加类或方法上，分别代表了两种不同的使用方式:
-     *      第一种，标记在类上，代表手动实现它是一个拓展接口的 Adaptive 拓展实现类。目前 Dubbo 项目里，
+     *      第一种，标记在类上，代表手动实现 它是一个拓展接口的 Adaptive 拓展实现类。目前 Dubbo 项目里，
      *             只有 ExtensionFactory 拓展的实现类 AdaptiveExtensionFactory 有这么用。
      *      第二种，标记在拓展接口的方法上，代表自动生成代码实现该接口的 Adaptive 拓展实现类。
      *             value ，从 Dubbo URL 获取参数中，使用键名( Key )，获取键值。该值为真正的拓展名。
