@@ -55,6 +55,27 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * dubbo protocol support.
  */
+
+/**
+ * todo:
+ *  （1）
+ *      dubbo 协议 特性：
+ *      缺省协议，使用基于 mina 1.1.7 和 hessian 3.2.1 的 remoting 交互。
+ *      连接个数：单连接
+ *      连接方式：长连接
+ *      传输协议：TCP
+ *      传输方式：NIO 异步传输
+ *      序列化：Hessian 二进制序列化
+ *      适用范围：传入传出参数数据包较小（建议小于100K），消费者比提供者个数多，
+ *            单一消费者无法压满提供者，尽量不要用 dubbo 协议传输大文件或超大字符串。
+ *            {参考 dubbo-protocol-readme.md}
+ *      适用场景：常规远程服务方法调用。
+ *   （2）
+ *        相比本地暴露，远程暴露会多做如下几件事情：
+ *       （a）启动通信服务器，绑定服务端口，提供远程调用。
+ *       （b）向注册中心注册服务提供者，提供服务消费者从注册中心发现服务。
+ *
+ */
 public class DubboProtocol extends AbstractProtocol {
 
     public static final String NAME = "dubbo";
@@ -228,12 +249,14 @@ public class DubboProtocol extends AbstractProtocol {
     public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
         URL url = invoker.getUrl();
 
+        // 创建 DubboExporter 对象，并添加到 `exporterMap` 。
         // export service.
         String key = serviceKey(url);
         DubboExporter<T> exporter = new DubboExporter<T>(invoker, key, exporterMap);
         exporterMap.put(key, exporter);
 
         //export an stub service for dispatching event
+        // 导出用于分派事件的存根服务
         Boolean isStubSupportEvent = url.getParameter(Constants.STUB_EVENT_KEY, Constants.DEFAULT_STUB_EVENT);
         Boolean isCallbackservice = url.getParameter(Constants.IS_CALLBACK_SERVICE, false);
         if (isStubSupportEvent && !isCallbackservice) {
@@ -248,7 +271,9 @@ public class DubboProtocol extends AbstractProtocol {
             }
         }
 
+        // 启动服务器
         openServer(url);
+        // 初始化序列化优化器
         optimizeSerialization(url);
         return exporter;
     }
@@ -256,7 +281,8 @@ public class DubboProtocol extends AbstractProtocol {
     private void openServer(URL url) {
         // find server.
         String key = url.getAddress();
-        //client can export a service which's only for server to invoke
+        // client can export a service which's only for server to invoke
+        // 客户机可以导出只供服务器调用的服务
         boolean isServer = url.getParameter(Constants.IS_SERVER_KEY, true);
         if (isServer) {
             ExchangeServer server = serverMap.get(key);
@@ -264,28 +290,42 @@ public class DubboProtocol extends AbstractProtocol {
                 serverMap.put(key, createServer(url));
             } else {
                 // server supports reset, use together with override
+                // 服务器支持重置，与重写一起使用
                 server.reset(url);
             }
         }
     }
 
+    /**
+     * todo: #createServer(url) 方法，创建并启动通信服务器。
+     *
+     * @param url
+     * @return
+     */
     private ExchangeServer createServer(URL url) {
+        // 默认开启 server 关闭时发送 READ_ONLY 事件
         // send readonly event when server closes, it's enabled by default
+        // 发送只读事件当服务器关闭时，默认启用
         url = url.addParameterIfAbsent(Constants.CHANNEL_READONLYEVENT_SENT_KEY, Boolean.TRUE.toString());
         // enable heartbeat by default
+        // 默认情况下启用心跳
         url = url.addParameterIfAbsent(Constants.HEARTBEAT_KEY, String.valueOf(Constants.DEFAULT_HEARTBEAT));
-        String str = url.getParameter(Constants.SERVER_KEY, Constants.DEFAULT_REMOTING_SERVER);
 
+        // 校验 Server 的 Dubbo SPI 拓展是否存在
+        String str = url.getParameter(Constants.SERVER_KEY, Constants.DEFAULT_REMOTING_SERVER);
         if (str != null && str.length() > 0 && !ExtensionLoader.getExtensionLoader(Transporter.class).hasExtension(str))
             throw new RpcException("Unsupported server type: " + str + ", url: " + url);
 
+        // 设置编解码器为 `"Dubbo"`
         url = url.addParameter(Constants.CODEC_KEY, DubboCodec.NAME);
+        // 启动服务器
         ExchangeServer server;
         try {
             server = Exchangers.bind(url, requestHandler);
         } catch (RemotingException e) {
             throw new RpcException("Fail to start server(url: " + url + ") " + e.getMessage(), e);
         }
+        // 校验 Client 的 Dubbo SPI 拓展是否存在
         str = url.getParameter(Constants.CLIENT_KEY);
         if (str != null && str.length() > 0) {
             Set<String> supportedTypes = ExtensionLoader.getExtensionLoader(Transporter.class).getSupportedExtensions();

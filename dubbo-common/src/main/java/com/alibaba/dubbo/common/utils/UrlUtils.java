@@ -124,6 +124,13 @@ public class UrlUtils {
         return u;
     }
 
+    /**
+     * todo: 解析单个 url 逻辑
+     *      将’defaults' 里面的参数，合并到 address 中：
+     *      合并逻辑：
+     *      （1） 将 address 认为是 url； 'defaults' 认为是 defaultURL。
+     *      （2） 若 url 有不存在的属性时，从 defaultURL 获取相对应的属性，设置到 url 中。
+     */
     public static List<URL> parseURLs(String address, Map<String, String> defaults) {
         if (address == null || address.length() == 0) {
             return null;

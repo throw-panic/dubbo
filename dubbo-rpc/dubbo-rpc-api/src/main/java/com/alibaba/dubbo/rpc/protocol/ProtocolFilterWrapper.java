@@ -43,9 +43,22 @@ public class ProtocolFilterWrapper implements Protocol {
         this.protocol = protocol;
     }
 
+    /**
+     * todo:
+     *      #buildInvokerChain(invoker, key, group) 方法，
+     *      创建带 Filter 链的 Invoker 对象。
+     *
+     * @param invoker   Invoker 对象
+     * @param key       key 获取 URL 参数名（该参数用于获得 ServiceConfig或 ReferenceConfig配置的自定义过滤器。）
+     * @param group     group 分组 （在暴露服务时，group = provider; 在引用服务时，group = consumer ）
+     * @param <T>       泛型
+     * @return          Invoker 对象
+     */
     private static <T> Invoker<T> buildInvokerChain(final Invoker<T> invoker, String key, String group) {
         Invoker<T> last = invoker;
+        // 获得过滤器数组
         List<Filter> filters = ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), key, group);
+        // 倒序循环 Filter ，创建带 Filter 链的 Invoker 对象
         if (!filters.isEmpty()) {
             for (int i = filters.size() - 1; i >= 0; i--) {
                 final Filter filter = filters.get(i);
@@ -94,9 +107,20 @@ public class ProtocolFilterWrapper implements Protocol {
 
     @Override
     public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
+        // 注册中心
+        // 当 invoker.url.protocl = registry ，跳过；
+        // 本地暴露服务不会符合这个判断。在远程暴露服务会符合暴露该判断，所以，当为本地服务导出时，跳过判断。
         if (Constants.REGISTRY_PROTOCOL.equals(invoker.getUrl().getProtocol())) {
+            // 导出服务
+            // 建立带有 Filter 过滤链的 Invoker ，再暴露服务。
             return protocol.export(invoker);
         }
+        /*
+         * todo:
+         *      调用 #buildInvokerChain(invoker, key, group) 方法，
+         *      创建带有 Filter 过滤链的 Invoker 对象。
+         *      再暴露服务。
+         */
         return protocol.export(buildInvokerChain(invoker, Constants.SERVICE_FILTER_KEY, Constants.PROVIDER));
     }
 
