@@ -80,11 +80,12 @@ public class ProtocolListenerWrapper implements Protocol {
 
     @Override
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
+        // 注册中心协议
         if (Constants.REGISTRY_PROTOCOL.equals(url.getProtocol())) {
             return protocol.refer(type, url);
         }
-        return new ListenerInvokerWrapper<T>(protocol.refer(type, url),
-                Collections.unmodifiableList(
+        return new ListenerInvokerWrapper<T>(protocol.refer(type, url), // 创建 ListenerInvokerWrapper 对象
+                Collections.unmodifiableList(                           // 获得 InvokerListener 数组
                         ExtensionLoader.getExtensionLoader(InvokerListener.class)
                                 .getActivateExtension(url, Constants.INVOKER_LISTENER_KEY)));
     }

@@ -103,25 +103,47 @@ public class InjvmProtocol extends AbstractProtocol implements Protocol {
         return new InjvmInvoker<T>(serviceType, url, url.getServiceKey(), exporterMap);
     }
 
+    /**
+     * todo: 是否本地引用
+     *
+     * @param url   URL
+     * @return      是否 true/false
+     */
     public boolean isInjvmRefer(URL url) {
         final boolean isJvmRefer;
         String scope = url.getParameter(Constants.SCOPE_KEY);
         // Since injvm protocol is configured explicitly, we don't need to set any extra flag, use normal refer process.
+
+        // （1）当 `protocol = injvm` 时，本身已经是 jvm 协议了，走正常流程即可。
+        /**
+         *  当 protocol = injvm 时，本身已经是 Injvm 协议了，走正常流程即可。这是最特殊的。
+         *  另外，因为 #isInjvmRefer(url) 方法，仅有在 #createProxy(map) 方法中调用，因此实际也不会触发该逻辑。
+         *  <dubbo:reference protocol="injvm" >  正常流程，一般为远程引用。为什么是一般呢？
+         *  如果我们配置 protocol = injvm ，实际走的是本地引用。
+         *
+         *  所以，如果真的是需要本地应用，建议配置 scope = local 。这样，会更加明确和清晰。
+         *  而不是配置 protocol="injvm" 以确定引用是否为本地或者远程。
+         **/
         if (Constants.LOCAL_PROTOCOL.toString().equals(url.getProtocol())) {
             isJvmRefer = false;
+        // （2）当 `scope = local` 或者 `injvm = true` 时，本地引用
         } else if (Constants.SCOPE_LOCAL.equals(scope) || (url.getParameter("injvm", false))) {
             // if it's declared as local reference
             // 'scope=local' is equivalent to 'injvm=true', injvm will be deprecated in the future release
             isJvmRefer = true;
+        // （3）当 `scope = remote` 时，远程引用
         } else if (Constants.SCOPE_REMOTE.equals(scope)) {
             // it's declared as remote reference
             isJvmRefer = false;
+        // （4）当 `generic = true` 时，即使用泛化调用，远程引用。
         } else if (url.getParameter(Constants.GENERIC_KEY, false)) {
             // generic invocation is not local reference
             isJvmRefer = false;
+        // （5）当本地已经有该 Exporter 时，本地引用
         } else if (getExporter(exporterMap, url) != null) {
             // by default, go through local reference if there's the service exposed locally
             isJvmRefer = true;
+        // （6）默认，远程引用
         } else {
             isJvmRefer = false;
         }

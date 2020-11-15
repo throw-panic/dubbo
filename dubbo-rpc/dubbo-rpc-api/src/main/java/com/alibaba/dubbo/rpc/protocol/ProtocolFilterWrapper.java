@@ -106,6 +106,9 @@ public class ProtocolFilterWrapper implements Protocol {
     }
 
     @Override
+    /**
+     * 服务暴露
+     */
     public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
         // 注册中心
         // 当 invoker.url.protocl = registry ，跳过；
@@ -125,10 +128,16 @@ public class ProtocolFilterWrapper implements Protocol {
     }
 
     @Override
+    /**
+     * 服务引用
+     */
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
-        if (Constants.REGISTRY_PROTOCOL.equals(url.getProtocol())) {
+        // registry 本地引用还是远程引用
+        if (Constants.REGISTRY_PROTOCOL.equals(url.getProtocol())) {    // 远程
             return protocol.refer(type, url);
         }
+        // 引用服务，返回 Invoker 对象
+        // 构建调用链：给该 Invoker 对象，包装成带有 Filter 过滤链的 Invoker 对象
         return buildInvokerChain(protocol.refer(type, url), Constants.REFERENCE_FILTER_KEY, Constants.CONSUMER);
     }
 
