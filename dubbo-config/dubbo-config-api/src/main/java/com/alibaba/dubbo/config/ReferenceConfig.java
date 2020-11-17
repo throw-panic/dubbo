@@ -80,6 +80,9 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
      */
     private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
 
+    /**
+     * 服务引用 URL 数组
+     */
     private final List<URL> urls = new ArrayList<URL>();
     // interface name 接口名
     private String interfaceName;
@@ -89,7 +92,10 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
     private String client;
     // url for peer-to-peer invocation
     /**
-     * 直连服务提供者地址
+     * 直连服务地址
+     *
+     * 1. 可以是注册中心，也可以是服务提供者
+     * 2. 可配置多个，使用 ; 分隔
      */
     private String url;
     // method configs
@@ -442,7 +448,10 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
 
     @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
     /**
-     * 创建 proxy 代理对象
+     *  创建 proxy 代理对象
+     *  @param      map 集合
+     *  @return     代理对象
+     *
      */
     private T createProxy(Map<String, String> map) {
         URL tmpUrl = new URL("temp", "localhost", 0, map);
@@ -497,14 +506,21 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                         }
                     }
                 }
+
+            // todo: 注册中心
             } else { // assemble URL from register center's configuration
+                // 加载注册中心 URL 数组
                 List<URL> us = loadRegistries(false);
+                // 循环数组，添加到 `url` 中。
                 if (us != null && !us.isEmpty()) {
                     for (URL u : us) {
+                        // 加载监控中心 URL
                         URL monitorUrl = loadMonitor(u);
                         if (monitorUrl != null) {
+                            // 服务引用配置对象 `map`，带上监控中心的 URL
                             map.put(Constants.MONITOR_KEY, URL.encode(monitorUrl.toFullString()));
                         }
+                        // 注册中心的地址，带上服务引用的配置参数
                         urls.add(u.addParameterAndEncoded(Constants.REFER_KEY, StringUtils.toQueryString(map)));
                     }
                 }
@@ -513,21 +529,55 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                 }
             }
 
+            // 单 `urls` 时，引用服务，返回 Invoker 对象
             if (urls.size() == 1) {
+                // 引用服务（返回 invoker 对象，）
                 invoker = refprotocol.refer(interfaceClass, urls.get(0));
+                /**
+                 * todo: 补充说明：
+                 *      单 urls 时，直接调用 Protocol#refer(type, url) 方法，引用服务，
+                 *      返回 Invoker 对象。此处 Dubbo SPI 自适应的特性的好处就出来了，
+                 *      可以自动根据 URL 参数，获得对应的拓展实现。例如，invoker 传入后，
+                 *      根据 invoker.url 自动获得对应 Protocol 拓展实现为 DubboProtocol 。
+                 *      实际上，Protocol 有两个 Wrapper 拓展实现类： ProtocolFilterWrapper
+                 *      、ProtocolListenerWrapper 。
+                 *      所以，#export(...) 方法的调用顺序是：
+                 *      (1) Protocol$Adaptive => ProtocolFilterWrapper
+                 *          => ProtocolListenerWrapper => RegistryProtocol
+                 *      =>
+                 *      (2) Protocol$Adaptive => ProtocolFilterWrapper
+                 *          => ProtocolListenerWrapper => DubboProtocol
+                 *      也就是说，这一条大的调用链，包含两条小的调用链。原因是：
+                 *      首先，传入的是注册中心的 URL ，通过 Protocol$Adaptive 获取到的是
+                 *      RegistryProtocol 对象。其次，RegistryProtocol 会在其
+                 *      #refer(...) 方法中，使用服务提供者的 URL ( 即注册中心的 URL
+                 *      的 refer 参数值)，再次调用 Protocol$Adaptive 获取到的是
+                 *      DubboProtocol 对象，进行服务引用。
+                 *
+                 */
+
             } else {
+                // 循环 `urls` ，引用服务，返回 Invoker 对象
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
                 for (URL url : urls) {
+                    // 引用服务
+                    // 调用 Protocol#refer(type, url) 方法，引用服务，
+                    // 返回 Invoker 对象。然后，添加到 invokers 中。
                     invokers.add(refprotocol.refer(interfaceClass, url));
+                    // 使用最后一个注册中心的 URL
                     if (Constants.REGISTRY_PROTOCOL.equals(url.getProtocol())) {
+                        // 使用最后一个注册中心的 URL ，赋值到 registryURL 。
                         registryURL = url; // use last registry url
                     }
                 }
+                // 有注册中心
                 if (registryURL != null) { // registry url is available
+                    // 对有注册中心的 Cluster 只用 AvailableCluster
                     // use AvailableCluster only when register's cluster is available
                     URL u = registryURL.addParameterIfAbsent(Constants.CLUSTER_KEY, AvailableCluster.NAME);
                     invoker = cluster.join(new StaticDirectory(u, invokers));
+                // 无注册中心
                 } else { // not a registry url
                     invoker = cluster.join(new StaticDirectory(invokers));
                 }

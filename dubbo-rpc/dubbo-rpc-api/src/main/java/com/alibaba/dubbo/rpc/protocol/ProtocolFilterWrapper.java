@@ -133,6 +133,7 @@ public class ProtocolFilterWrapper implements Protocol {
      */
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
         // registry 本地引用还是远程引用
+        // 注册中心
         if (Constants.REGISTRY_PROTOCOL.equals(url.getProtocol())) {    // 远程
             return protocol.refer(type, url);
         }

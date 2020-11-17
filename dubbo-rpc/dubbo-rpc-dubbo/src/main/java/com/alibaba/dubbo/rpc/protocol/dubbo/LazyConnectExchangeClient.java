@@ -43,13 +43,28 @@ final class LazyConnectExchangeClient implements ExchangeClient {
     // when this warning rises from invocation, program probably have bug.
     static final String REQUEST_WITH_WARNING_KEY = "lazyclient_request_with_warning";
     private final static Logger logger = LoggerFactory.getLogger(LazyConnectExchangeClient.class);
+    /**
+     * 请求时，是否检查告警
+     */
     protected final boolean requestWithWarning;
     private final URL url;
+    /**
+     *  通道处理器
+     */
     private final ExchangeHandler requestHandler;
+    /**
+     * 连接锁
+     */
     private final Lock connectLock = new ReentrantLock();
     // lazy connect, initial state for connection
     private final boolean initialState;
+    /**
+     * 通信客户端
+     */
     private volatile ExchangeClient client;
+    /**
+     * 警告计数器。每超过一定次数，打印告警日志。参见 {@link #warning(Object)}
+     */
     private AtomicLong warningcount = new AtomicLong(0);
 
     public LazyConnectExchangeClient(URL url, ExchangeHandler requestHandler) {
@@ -62,7 +77,7 @@ final class LazyConnectExchangeClient implements ExchangeClient {
 
 
     private void initClient() throws RemotingException {
-        if (client != null)
+        if (client != null)     // 客户端未初始化
             return;
         if (logger.isInfoEnabled()) {
             logger.info("Lazy connect to " + url);
@@ -78,6 +93,9 @@ final class LazyConnectExchangeClient implements ExchangeClient {
     }
 
     @Override
+    /**
+     *  发送消息/请求前，都会调用该方法，保证客户端已经初始化。
+     */
     public ResponseFuture request(Object request) throws RemotingException {
         warning(request);
         initClient();
@@ -111,11 +129,11 @@ final class LazyConnectExchangeClient implements ExchangeClient {
      * @param request
      */
     private void warning(Object request) {
-        if (requestWithWarning) {
-            if (warningcount.get() % 5000 == 0) {
+        if (requestWithWarning) {   // 是否开启 warning 警告
+            if (warningcount.get() % 5000 == 0) {   // 警告计数器
                 logger.warn(new IllegalStateException("safe guard client , should not be called ,must have a bug."));
             }
-            warningcount.incrementAndGet();
+            warningcount.incrementAndGet(); // 增加计数
         }
     }
 
@@ -149,6 +167,9 @@ final class LazyConnectExchangeClient implements ExchangeClient {
     }
 
     @Override
+    /**
+     * todo: 发送消息/请求前，都会调用该方法，保证客户端已经初始化。
+     */
     public void send(Object message) throws RemotingException {
         initClient();
         client.send(message);
