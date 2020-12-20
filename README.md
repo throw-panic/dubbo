@@ -8,10 +8,5 @@
 
 
 
-## Architecture
-
-![Architecture](http://dubbo.apache.org/img/architecture.png)
-
-
 
 
