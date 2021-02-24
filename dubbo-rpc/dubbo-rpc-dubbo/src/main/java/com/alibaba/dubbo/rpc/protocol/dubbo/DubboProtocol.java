@@ -111,6 +111,13 @@ public class DubboProtocol extends AbstractProtocol {
     //consumer side export a stub service for dispatching event
     //servicekey-stubmethods
     private final ConcurrentMap<String, String> stubServiceMethodsMap = new ConcurrentHashMap<String, String>();
+
+    /**
+     * todo:
+     *      line：114~200
+     *      requestHandler 实现了自己的 ExchangeHandler 对象，处理请求、消息、连接、断开连接等事件。
+     *      我就是个请求处理器吖！！！
+     */
     private ExchangeHandler requestHandler = new ExchangeHandlerAdapter() {
 
         @Override

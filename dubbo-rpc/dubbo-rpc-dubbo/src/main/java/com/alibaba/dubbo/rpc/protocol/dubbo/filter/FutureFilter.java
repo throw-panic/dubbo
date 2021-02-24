@@ -46,28 +46,43 @@ public class FutureFilter implements Filter {
 
     @Override
     public Result invoke(final Invoker<?> invoker, final Invocation invocation) throws RpcException {
+        // todo: 获得是否异步调用
         final boolean isAsync = RpcUtils.isAsync(invoker.getUrl(), invocation);
 
+        // todo: 触发前置方法
         fireInvokeCallback(invoker, invocation);
         // need to configure if there's return value before the invocation in order to help invoker to judge if it's
         // necessary to return future.
+
+        // todo: 调用方法
         Result result = invoker.invoke(invocation);
+
+        /**
+         * todo:
+         *      触发回调方法
+         *      所以，同步异步都可以触发回调方法
+          */
         if (isAsync) {
+            // 异步回调
             asyncCallback(invoker, invocation);
         } else {
+            // 同步回调
             syncCallback(invoker, invocation, result);
         }
         return result;
     }
 
+    // todo 同步回调
     private void syncCallback(final Invoker<?> invoker, final Invocation invocation, final Result result) {
         if (result.hasException()) {
+            // 异常，触发异常回调
             fireThrowCallback(invoker, invocation, result.getException());
-        } else {
+        } else { // 正常，触发正常回调
             fireReturnCallback(invoker, invocation, result.getValue());
         }
     }
 
+    // todo 异步回调
     private void asyncCallback(final Invoker<?> invoker, final Invocation invocation) {
         Future<?> f = RpcContext.getContext().getFuture();
         if (f instanceof FutureAdapter) {
